@@ -36,8 +36,7 @@ tcga_expr = tcga_expr.apply(lambda col: (col - col.mean()) / (col.std() + 1e-8),
 print(f"Пациенти: {tcga_expr.shape[1]}  |  Гени: {tcga_expr.shape[0]}")
 print(f"\nРазпределение:\n{tcga_clin['Subtype'].value_counts()}\n")
 
-ppi_df  = pd.read_csv('data/string_interactions_short.tsv', sep='\t')
-ppi_df.columns = [c.lstrip('#') for c in ppi_df.columns]
+ppi_df  = pd.read_csv('data/string_ppi_160genes.tsv', sep='\t')
 dataset, encoder = build_graph_dataset(tcga_expr, ppi_df, tcga_clin)
 print(f"Графове: {len(dataset)}  |  Ребра: {dataset[0].edge_index.shape[1]}")
 
