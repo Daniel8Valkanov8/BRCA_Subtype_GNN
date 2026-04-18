@@ -41,7 +41,8 @@ meta_expr = meta_expr.apply(lambda col: (col - col.mean()) / (col.std() + 1e-8),
 print(f"Пациенти: {meta_expr.shape[1]}  |  Гени: {meta_expr.shape[0]}")
 print(f"\nРазпределение:\n{meta_clin['Subtype'].value_counts()}\n")
 
-ppi_df   = pd.read_csv('data/string_interactions_short.tsv', sep='\t', comment='#')
+ppi_df   = pd.read_csv('data/string_interactions_short.tsv', sep='\t')
+ppi_df.columns = [c.lstrip('#') for c in ppi_df.columns]
 dataset, encoder = build_graph_dataset(meta_expr, ppi_df, meta_clin)
 print(f"Графове: {len(dataset)}  |  Ребра: {dataset[0].edge_index.shape[1]}")
 
