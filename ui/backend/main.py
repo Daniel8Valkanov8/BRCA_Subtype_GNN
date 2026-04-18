@@ -196,6 +196,7 @@ def discoveries():
             edge_scores.setdefault(pair, []).append(float(sc))
 
     top_edges = sorted(edge_scores.items(), key=lambda x: np.mean(x[1]), reverse=True)[:80]
+    top_edges = [(pair, sc) for pair, sc in top_edges if pair[0] != pair[1]]
 
     nodes_set = set()
     edges_out = []

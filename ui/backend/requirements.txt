@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+python-multipart
+torch
+torch-geometric
+pandas
+numpy
+scipy
