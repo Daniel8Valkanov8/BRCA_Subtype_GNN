@@ -1,0 +1,46 @@
+import requests
+import json
+
+def inspect_single_patient(patient_id="TCGA-A2-A1G4"):
+    print(f"🔍 Изследване на пълен JSON запис за пациент: {patient_id}...")
+    
+    base_url = "https://api.gdc.cancer.gov/cases"
+    
+    # Филтър за конкретния пациент
+    filters = {
+        "op": "=",
+        "content": {
+            "field": "submitter_id",
+            "value": [patient_id]
+        }
+    }
+
+    # Искаме ВСИЧКИ възможни разширения (expands)
+    # Това ще ни покаже диагнози, проби, демография и всичко останало
+    params = {
+        "filters": json.dumps(filters),
+        "expand": "diagnoses,demographic,samples,exposures,follow_ups",
+        "format": "JSON"
+    }
+
+    try:
+        response = requests.get(base_url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            # Принтираме го красиво структуриран
+            full_json = json.dumps(data, indent=4)
+            print(full_json)
+            
+            # Запазваме го във файл, за да можеш да го разгледаш спокойно
+            with open("patient_debug.json", "w") as f:
+                f.write(full_json)
+            print("\n✅ Пълният JSON е запазен в 'patient_debug.json'")
+            
+        else:
+            print(f"❌ Грешка: {response.status_code}")
+    except Exception as e:
+        print(f"💥 Грешка: {e}")
+
+if __name__ == "__main__":
+    # Можеш да смениш ID-то с някое, което знаеш, че е имало данни в таблицата
+    inspect_single_patient("TCGA-BH-A0HF")
