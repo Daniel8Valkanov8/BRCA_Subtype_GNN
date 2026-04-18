@@ -22,7 +22,7 @@ DEVICE          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Device: {DEVICE}")
 print("Зареждане на METABRIC данни...")
 
-meta_expr = pd.read_csv('data/metabric_expression_160genes.csv', index_col=0)
+meta_expr = pd.read_csv('data/metabric_expression.csv', index_col=0)
 meta_clin = pd.read_csv('data/metabric_clinical.csv', index_col=0)
 common    = sorted(set(meta_expr.columns) & set(meta_clin.index))
 meta_expr = meta_expr[common].fillna(0)
