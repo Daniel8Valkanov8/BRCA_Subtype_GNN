@@ -1,12 +1,19 @@
 """
 Обучение само на TCGA данни · 160 гена · 5-Fold CV
+Подобрения v2:
+  - GATv2Conv с edge features (combined_score от STRING)
+  - SMOTE вътре в обучителния fold (без data leakage в тест набора)
 """
 import torch
+import numpy as np
 import pandas as pd
 from torch_geometric.loader import DataLoader
+from torch_geometric.data import Data
 from torch.utils.tensorboard import SummaryWriter
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import f1_score, classification_report
+from sklearn.preprocessing import LabelEncoder
+from imblearn.over_sampling import SMOTE
 
 from src.data_loader import build_graph_dataset
 from src.model import BioGNN
@@ -16,7 +23,7 @@ EPOCHS          = 150
 BATCH_SIZE      = 16
 LR              = 0.0005
 WEIGHT_DECAY    = 1e-4
-PATIENCE        = 20        # early stopping
+PATIENCE        = 20
 DEVICE          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 print(f"Device: {DEVICE}")
@@ -40,6 +47,11 @@ ppi_df  = pd.read_csv('data/string_ppi_160genes.tsv', sep='\t')
 dataset, encoder = build_graph_dataset(tcga_expr, ppi_df, tcga_clin)
 print(f"Графове: {len(dataset)}  |  Ребра: {dataset[0].edge_index.shape[1]}")
 
+# Извличаме edge_index и edge_attr веднъж — те са еднакви за всички пациенти
+base_edge_index = dataset[0].edge_index
+base_edge_attr  = dataset[0].edge_attr
+
+# Класови тегла (изчислени по оригиналните данни, преди SMOTE)
 counts  = tcga_clin['Subtype'].value_counts().sort_index().values
 weights = 1.0 / torch.tensor(counts, dtype=torch.float)
 weights = (weights / weights.sum() * len(counts)).to(DEVICE)
@@ -49,16 +61,38 @@ all_labels = [g.y.item() for g in dataset]
 fold_accs, fold_f1s = [], []
 best_acc, best_state = 0.0, None
 
-print(f"Стартиране на 5-Fold CV (hidden={HIDDEN_CHANNELS}, epochs={EPOCHS}, lr={LR})...\n")
+print(f"Стартиране на 5-Fold CV (hidden={HIDDEN_CHANNELS}, epochs={EPOCHS}, lr={LR})...")
+print("Подобрения: GATv2Conv + edge features + in-fold SMOTE\n")
 
 for fold, (train_idx, test_idx) in enumerate(skf.split(range(len(dataset)), all_labels), 1):
     print(f"{'='*50}\nFOLD {fold}/5\n{'='*50}")
-    writer = SummaryWriter(log_dir=f'runs/tcga_fold_{fold}')
+    writer = SummaryWriter(log_dir=f'runs/tcga_v2_fold_{fold}')
 
-    train_loader = DataLoader([dataset[i] for i in train_idx], batch_size=BATCH_SIZE, shuffle=True)
-    test_loader  = DataLoader([dataset[i] for i in test_idx],  batch_size=BATCH_SIZE)
+    # ── SMOTE само върху обучителните данни ─────────────────────────────────
+    # Взимаме генните профили (patients, genes) и етикетите от train fold
+    X_train = np.array([dataset[i].x.numpy().flatten() for i in train_idx])
+    y_train = np.array([dataset[i].y.item()            for i in train_idx])
 
-    model     = BioGNN(1, HIDDEN_CHANNELS, len(encoder.classes_)).to(DEVICE)
+    # k_neighbors=5 работи дори с малкия BRCA_Normal клас (~29 обучителни проби)
+    smote = SMOTE(random_state=42, k_neighbors=5)
+    X_aug, y_aug = smote.fit_resample(X_train, y_train)
+    print(f"  Train: {len(X_train)} → {len(X_aug)} пациента след SMOTE")
+
+    # Строим PyG обекти от синтетичните проби
+    train_graphs = []
+    for x_flat, y_val in zip(X_aug, y_aug):
+        x = torch.tensor(x_flat, dtype=torch.float).view(-1, 1)
+        y = torch.tensor([y_val], dtype=torch.long)
+        train_graphs.append(Data(x=x, edge_index=base_edge_index,
+                                 edge_attr=base_edge_attr, y=y))
+
+    test_graphs = [dataset[i] for i in test_idx]
+
+    train_loader = DataLoader(train_graphs, batch_size=BATCH_SIZE, shuffle=True)
+    test_loader  = DataLoader(test_graphs,  batch_size=BATCH_SIZE)
+    # ────────────────────────────────────────────────────────────────────────
+
+    model     = BioGNN(1, HIDDEN_CHANNELS, len(encoder.classes_), edge_dim=1).to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, factor=0.5)
     criterion = torch.nn.CrossEntropyLoss(weight=weights)
@@ -73,7 +107,8 @@ for fold, (train_idx, test_idx) in enumerate(skf.split(range(len(dataset)), all_
         for batch in train_loader:
             batch = batch.to(DEVICE)
             optimizer.zero_grad()
-            out  = model(batch.x, batch.edge_index, batch.batch)
+            out  = model(batch.x, batch.edge_index, batch.batch,
+                         edge_attr=batch.edge_attr)
             loss = criterion(out, batch.y)
             loss.backward()
             optimizer.step()
@@ -86,7 +121,8 @@ for fold, (train_idx, test_idx) in enumerate(skf.split(range(len(dataset)), all_
         with torch.no_grad():
             for batch in test_loader:
                 batch = batch.to(DEVICE)
-                out   = model(batch.x, batch.edge_index, batch.batch)
+                out   = model(batch.x, batch.edge_index, batch.batch,
+                              edge_attr=batch.edge_attr)
                 preds.extend(out.argmax(1).cpu().numpy())
                 trues.extend(batch.y.cpu().numpy())
 
@@ -123,7 +159,8 @@ for fold, (train_idx, test_idx) in enumerate(skf.split(range(len(dataset)), all_
     with torch.no_grad():
         for batch in test_loader:
             batch = batch.to(DEVICE)
-            out   = model(batch.x, batch.edge_index, batch.batch)
+            out   = model(batch.x, batch.edge_index, batch.batch,
+                          edge_attr=batch.edge_attr)
             preds.extend(out.argmax(1).cpu().numpy())
             trues.extend(batch.y.cpu().numpy())
     best_f1 = f1_score(trues, preds, average='macro', zero_division=0)
@@ -139,14 +176,14 @@ for fold, (train_idx, test_idx) in enumerate(skf.split(range(len(dataset)), all_
 torch.save(best_state, 'best_model_tcga_160genes.pt')
 
 print(f"\n{'='*50}")
-print(f"ФИНАЛНИ РЕЗУЛТАТИ — TCGA ONLY (160 гена, {tcga_expr.shape[1]} пациента)")
+print(f"ФИНАЛНИ РЕЗУЛТАТИ — TCGA ONLY v2 (160 гена, GATv2 + SMOTE + edge features)")
 print(f"{'='*50}")
 print(f"Accuracy:  {sum(fold_accs)/5:.4f}  (+/- {pd.Series(fold_accs).std():.4f})")
 print(f"Macro F1:  {sum(fold_f1s)/5:.4f}  (+/- {pd.Series(fold_f1s).std():.4f})")
 print(f"\nСРАВНЕНИЕ:")
-print(f"  27 гена оригинал:     Acc=0.5658  F1=0.4591")
-print(f"  160 гена TCGA+META:   Acc=0.3745  F1=0.3562")
-print(f"  160 гена TCGA only:   Acc={sum(fold_accs)/5:.4f}  F1={sum(fold_f1s)/5:.4f}")
+print(f"  27 гена оригинал:               Acc=0.5658  F1=0.4591")
+print(f"  160 гена TCGA only v1 (GATConv): Acc=0.5851  F1=0.4353")
+print(f"  160 гена TCGA only v2 (GATv2):   Acc={sum(fold_accs)/5:.4f}  F1={sum(fold_f1s)/5:.4f}")
 
 model.load_state_dict(best_state)
 model.eval()
@@ -154,7 +191,8 @@ p_all, t_all = [], []
 with torch.no_grad():
     for batch in DataLoader(dataset, batch_size=32):
         batch = batch.to(DEVICE)
-        out   = model(batch.x, batch.edge_index, batch.batch)
+        out   = model(batch.x, batch.edge_index, batch.batch,
+                      edge_attr=batch.edge_attr)
         p_all.extend(out.argmax(1).cpu().numpy())
         t_all.extend(batch.y.cpu().numpy())
 

@@ -12,7 +12,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from torch_geometric.data import Data
-from torch_geometric.nn import GATConv, global_mean_pool
+from torch_geometric.nn import GATv2Conv, global_mean_pool
 import torch.nn.functional as F
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -29,28 +29,28 @@ app.add_middleware(
 # ── Модел ──────────────────────────────────────────────────────────────────────
 
 class BioGNN(torch.nn.Module):
-    def __init__(self, num_node_features, hidden_channels, num_classes):
+    def __init__(self, num_node_features, hidden_channels, num_classes, edge_dim=1):
         super().__init__()
-        self.conv1 = GATConv(num_node_features, hidden_channels, heads=4, dropout=0.2)
+        self.conv1 = GATv2Conv(num_node_features, hidden_channels, heads=4, dropout=0.2, edge_dim=edge_dim)
         self.bn1   = torch.nn.BatchNorm1d(hidden_channels * 4)
-        self.conv2 = GATConv(hidden_channels * 4, hidden_channels, heads=4, dropout=0.2)
+        self.conv2 = GATv2Conv(hidden_channels * 4, hidden_channels, heads=4, dropout=0.2, edge_dim=edge_dim)
         self.bn2   = torch.nn.BatchNorm1d(hidden_channels * 4)
-        self.conv3 = GATConv(hidden_channels * 4, hidden_channels, heads=1, concat=False, dropout=0.2)
+        self.conv3 = GATv2Conv(hidden_channels * 4, hidden_channels, heads=1, concat=False, dropout=0.2, edge_dim=edge_dim)
         self.lin1  = torch.nn.Linear(hidden_channels, hidden_channels // 2)
         self.lin2  = torch.nn.Linear(hidden_channels // 2, num_classes)
 
-    def forward(self, x, edge_index, batch, return_attention=False):
+    def forward(self, x, edge_index, batch, edge_attr=None, return_attention=False):
         attn_weights = {}
 
-        x, (ei1, aw1) = self.conv1(x, edge_index, return_attention_weights=True)
+        x, (ei1, aw1) = self.conv1(x, edge_index, edge_attr=edge_attr, return_attention_weights=True)
         attn_weights['layer1'] = (ei1.cpu(), aw1.cpu())
         x = F.relu(self.bn1(x))
 
-        x, (ei2, aw2) = self.conv2(x, edge_index, return_attention_weights=True)
+        x, (ei2, aw2) = self.conv2(x, edge_index, edge_attr=edge_attr, return_attention_weights=True)
         attn_weights['layer2'] = (ei2.cpu(), aw2.cpu())
         x = F.relu(self.bn2(x))
 
-        x, (ei3, aw3) = self.conv3(x, edge_index, return_attention_weights=True)
+        x, (ei3, aw3) = self.conv3(x, edge_index, edge_attr=edge_attr, return_attention_weights=True)
         attn_weights['layer3'] = (ei3.cpu(), aw3.cpu())
         x = F.relu(x)
 
@@ -74,30 +74,35 @@ EXPR_PATH  = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'tcga_e
 CLASSES = ['BRCA_Basal', 'BRCA_Her2', 'BRCA_LumA', 'BRCA_LumB', 'BRCA_Normal']
 DEVICE  = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model     = None
-gene_list = None
-gene_map  = None
+model      = None
+gene_list  = None
+gene_map   = None
 edge_index = None
-ppi_df    = None
-tcga_expr = None
+edge_attr  = None
+ppi_df     = None
+tcga_expr  = None
 
 
 def load_resources():
-    global model, gene_list, gene_map, edge_index, ppi_df, tcga_expr
+    global model, gene_list, gene_map, edge_index, edge_attr, ppi_df, tcga_expr
 
     ppi_df    = pd.read_csv(PPI_PATH, sep='\t')
     tcga_expr = pd.read_csv(EXPR_PATH, index_col=0)
     gene_list = list(tcga_expr.index)
     gene_map  = {g: i for i, g in enumerate(gene_list)}
 
-    edges = []
+    has_score = 'combined_score' in ppi_df.columns
+    edges, attrs = [], []
     for _, row in ppi_df.iterrows():
         if row['node1'] in gene_map and row['node2'] in gene_map:
             i, j = gene_map[row['node1']], gene_map[row['node2']]
-            edges += [[i, j], [j, i]]
+            score = float(row['combined_score']) / 1000.0 if has_score else 1.0
+            edges  += [[i, j], [j, i]]
+            attrs  += [[score], [score]]
     edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous().to(DEVICE)
+    edge_attr  = torch.tensor(attrs, dtype=torch.float).to(DEVICE)
 
-    model = BioGNN(1, 128, len(CLASSES)).to(DEVICE)
+    model = BioGNN(1, 128, len(CLASSES), edge_dim=1).to(DEVICE)
     state = torch.load(MODEL_PATH, map_location=DEVICE)
     model.load_state_dict(state)
     model.eval()
@@ -161,7 +166,8 @@ async def predict(file: UploadFile = File(...)):
     for patient_id in df.columns:
         x, batch = build_patient_graph(df[patient_id])
         with torch.no_grad():
-            logits, attn = model(x, edge_index, batch, return_attention=True)
+            logits, attn = model(x, edge_index, batch,
+                                 edge_attr=edge_attr, return_attention=True)
             probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
 
         pred_idx  = int(np.argmax(probs))
@@ -187,7 +193,8 @@ def discoveries():
     for patient in patients:
         x, batch = build_patient_graph(tcga_expr[patient])
         with torch.no_grad():
-            _, attn = model(x, edge_index, batch, return_attention=True)
+            _, attn = model(x, edge_index, batch,
+                            edge_attr=edge_attr, return_attention=True)
         ei, aw = attn['layer3']
         scores = aw.mean(dim=1).detach().numpy()
         src, dst = ei[0].numpy(), ei[1].numpy()

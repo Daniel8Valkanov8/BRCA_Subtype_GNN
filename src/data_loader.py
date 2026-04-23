@@ -2,7 +2,7 @@
 МОДУЛ: Data Loader & Preprocessing
 ОПИСАНИЕ: Зарежда клиничните данни и генната експресия от cBioPortal,
 напасва пациентите между двете бази и ги трансформира в графични обекти
-за PyTorch Geometric.
+за PyTorch Geometric. Поддържа edge features (combined_score от STRING).
 """
 
 import pandas as pd
@@ -29,16 +29,13 @@ def load_and_align_data(clinical_path: str, expression_path: str):
     clinical_final : pd.DataFrame
         Клинични данни индексирани по Sample ID за общите пациенти
     """
-    # Клинични данни — пропускаме коментарите (#) в началото на файла
     clinical_df = pd.read_csv(clinical_path, sep='\t', comment='#')
     clinical_df = clinical_df.dropna(subset=['Subtype'])
 
-    # Генна експресия — транспонираме така, че редовете да са гени
     exp_df = pd.read_csv(expression_path, sep='\t').set_index('Hugo_Symbol')
     if 'Entrez_Gene_Id' in exp_df.columns:
         exp_df = exp_df.drop(columns=['Entrez_Gene_Id'])
 
-    # Намираме общите пациенти (intersection между двата файла)
     common_samples = list(set(exp_df.columns) & set(clinical_df['Sample ID']))
     print(f"Common patients: {len(common_samples)}")
 
@@ -53,13 +50,15 @@ def build_graph_dataset(exp_df: pd.DataFrame,
                         clinical_df: pd.DataFrame):
     """
     Превръща таблиците в списък от PyG Data обекти — по един граф на пациент.
+    Ако PPI DataFrame-ът съдържа колона 'combined_score', тя се нормализира
+    до [0,1] и се прикача като edge_attr (ребрена характеристика) за GATv2Conv.
 
     Параметри
     ----------
     exp_df : pd.DataFrame
         Матрица (гени x пациенти)
     ppi_df : pd.DataFrame
-        PPI мрежа с колони 'node1' и 'node2' (STRING Database)
+        PPI мрежа с колони 'node1', 'node2' и опционално 'combined_score'
     clinical_df : pd.DataFrame
         Клинични данни с колона 'Subtype', индексирани по Sample ID
 
@@ -73,29 +72,32 @@ def build_graph_dataset(exp_df: pd.DataFrame,
     data_list = []
     le = LabelEncoder()
 
-    # Подтиповете: BRCA_LumA, BRCA_LumB, BRCA_Her2, BRCA_Basal, BRCA_Normal → 0..4
     y_encoded = le.fit_transform(clinical_df['Subtype'])
     print(f"Classes: {list(le.classes_)}")
 
-    # Речник: ген → индекс (нужен за изграждане на edge_index)
     gene_map = {name: i for i, name in enumerate(exp_df.index)}
 
-    # Edge index — ребрата на графа от PPI мрежата
+    has_score = 'combined_score' in ppi_df.columns
+
     edge_index_list = []
+    edge_attr_list  = []
+
     for _, row in ppi_df.iterrows():
         if row['node1'] in gene_map and row['node2'] in gene_map:
             i, j = gene_map[row['node1']], gene_map[row['node2']]
-            edge_index_list.append([i, j])
-            edge_index_list.append([j, i])  # графът е ненасочен
+            # STRING combined_score е в диапазон 0–1000; нормализираме до [0,1]
+            score = float(row['combined_score']) / 1000.0 if has_score else 1.0
+            edge_index_list += [[i, j], [j, i]]
+            edge_attr_list  += [[score], [score]]
 
     edge_index = torch.tensor(edge_index_list, dtype=torch.long).t().contiguous()
-    print(f"Graph edges: {edge_index.shape[1]}")
+    edge_attr  = torch.tensor(edge_attr_list, dtype=torch.float)
+    print(f"Graph edges: {edge_index.shape[1]}  |  edge_attr: {edge_attr.shape}")
 
-    # Един граф на пациент — характеристиките (x) се менят, топологията (edges) остава
-    for i, patient in enumerate(exp_df.columns):
+    for idx, patient in enumerate(exp_df.columns):
         x = torch.tensor(exp_df[patient].values, dtype=torch.float).view(-1, 1)
-        y = torch.tensor([y_encoded[i]], dtype=torch.long)
-        graph = Data(x=x, edge_index=edge_index, y=y)
+        y = torch.tensor([y_encoded[idx]], dtype=torch.long)
+        graph = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y)
         data_list.append(graph)
 
     return data_list, le
