@@ -31,7 +31,7 @@ print("Зареждане на TCGA данни...")
 
 clinical_df = pd.read_csv('data/brca_tcga_pan_can_atlas_2018_clinical_data.tsv',
                           sep='\t', comment='#').dropna(subset=['Subtype'])
-tcga_expr   = pd.read_csv('data/tcga_expression_174genes.csv', index_col=0)
+tcga_expr   = pd.read_csv('data/tcga_expression_198genes.csv', index_col=0)
 common      = sorted(set(clinical_df['Sample ID']) & set(tcga_expr.columns))
 tcga_expr   = tcga_expr[common].fillna(0)
 tcga_clin   = clinical_df.set_index('Sample ID').loc[common, ['Subtype']]
@@ -43,7 +43,7 @@ tcga_expr = tcga_expr.apply(lambda col: (col - col.mean()) / (col.std() + 1e-8),
 print(f"Пациенти: {tcga_expr.shape[1]}  |  Гени: {tcga_expr.shape[0]}")
 print(f"\nРазпределение:\n{tcga_clin['Subtype'].value_counts()}\n")
 
-ppi_df  = pd.read_csv('data/string_ppi_160genes.tsv', sep='\t')
+ppi_df  = pd.read_csv('data/string_ppi_196genes.tsv', sep='\t')
 dataset, encoder = build_graph_dataset(tcga_expr, ppi_df, tcga_clin)
 print(f"Графове: {len(dataset)}  |  Ребра: {dataset[0].edge_index.shape[1]}")
 
@@ -182,8 +182,9 @@ print(f"Accuracy:  {sum(fold_accs)/5:.4f}  (+/- {pd.Series(fold_accs).std():.4f}
 print(f"Macro F1:  {sum(fold_f1s)/5:.4f}  (+/- {pd.Series(fold_f1s).std():.4f})")
 print(f"\nСРАВНЕНИЕ:")
 print(f"  27 гена оригинал:               Acc=0.5658  F1=0.4591")
-print(f"  160 гена TCGA only v1 (GATConv): Acc=0.5851  F1=0.4353")
-print(f"  160 гена TCGA only v2 (GATv2):   Acc={sum(fold_accs)/5:.4f}  F1={sum(fold_f1s)/5:.4f}")
+print(f"  160 гена TCGA only v1 (GATConv):  Acc=0.5851  F1=0.4353")
+print(f"  160 гена TCGA only v2 (GATv2):   Acc=0.6136  F1=0.4544")
+print(f"  196 гена (160 + 36 PAM50) GATv2: Acc={sum(fold_accs)/5:.4f}  F1={sum(fold_f1s)/5:.4f}")
 
 model.load_state_dict(best_state)
 model.eval()

@@ -1,5 +1,6 @@
 """
 BRCA Subtype GNN - FastAPI Backend
+Model: GATv2Conv + edge features (STRING combined_score), Acc=0.6136
 """
 import io
 import os
@@ -12,10 +13,10 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from torch_geometric.data import Data
-from torch_geometric.nn import GATv2Conv, global_mean_pool
 import torch.nn.functional as F
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from src.model import BioGNN
 
 app = FastAPI(title="BRCA Subtype GNN API")
 
@@ -26,48 +27,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Модел ──────────────────────────────────────────────────────────────────────
-
-class BioGNN(torch.nn.Module):
-    def __init__(self, num_node_features, hidden_channels, num_classes, edge_dim=1):
-        super().__init__()
-        self.conv1 = GATv2Conv(num_node_features, hidden_channels, heads=4, dropout=0.2, edge_dim=edge_dim)
-        self.bn1   = torch.nn.BatchNorm1d(hidden_channels * 4)
-        self.conv2 = GATv2Conv(hidden_channels * 4, hidden_channels, heads=4, dropout=0.2, edge_dim=edge_dim)
-        self.bn2   = torch.nn.BatchNorm1d(hidden_channels * 4)
-        self.conv3 = GATv2Conv(hidden_channels * 4, hidden_channels, heads=1, concat=False, dropout=0.2, edge_dim=edge_dim)
-        self.lin1  = torch.nn.Linear(hidden_channels, hidden_channels // 2)
-        self.lin2  = torch.nn.Linear(hidden_channels // 2, num_classes)
-
-    def forward(self, x, edge_index, batch, edge_attr=None, return_attention=False):
-        attn_weights = {}
-
-        x, (ei1, aw1) = self.conv1(x, edge_index, edge_attr=edge_attr, return_attention_weights=True)
-        attn_weights['layer1'] = (ei1.cpu(), aw1.cpu())
-        x = F.relu(self.bn1(x))
-
-        x, (ei2, aw2) = self.conv2(x, edge_index, edge_attr=edge_attr, return_attention_weights=True)
-        attn_weights['layer2'] = (ei2.cpu(), aw2.cpu())
-        x = F.relu(self.bn2(x))
-
-        x, (ei3, aw3) = self.conv3(x, edge_index, edge_attr=edge_attr, return_attention_weights=True)
-        attn_weights['layer3'] = (ei3.cpu(), aw3.cpu())
-        x = F.relu(x)
-
-        x = global_mean_pool(x, batch)
-        x = F.dropout(x, p=0.4, training=self.training)
-        x = F.relu(self.lin1(x))
-        x = F.dropout(x, p=0.2, training=self.training)
-        x = self.lin2(x)
-
-        if return_attention:
-            return x, attn_weights
-        return x
-
 
 # ── Зареждане при старт ────────────────────────────────────────────────────────
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'best_model_tcga_160genes.pt')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'best_model_tcga_160genes_06,08,26.pt')
 PPI_PATH   = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'string_ppi_160genes.tsv')
 EXPR_PATH  = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'tcga_expression_174genes.csv')
 
@@ -91,22 +54,25 @@ def load_resources():
     gene_list = list(tcga_expr.index)
     gene_map  = {g: i for i, g in enumerate(gene_list)}
 
-    has_score = 'combined_score' in ppi_df.columns
-    edges, attrs = [], []
+    edges      = []
+    edge_scores = []
+    has_score  = 'combined_score' in ppi_df.columns
     for _, row in ppi_df.iterrows():
         if row['node1'] in gene_map and row['node2'] in gene_map:
-            i, j = gene_map[row['node1']], gene_map[row['node2']]
-            score = float(row['combined_score']) / 1000.0 if has_score else 1.0
-            edges  += [[i, j], [j, i]]
-            attrs  += [[score], [score]]
+            i, j  = gene_map[row['node1']], gene_map[row['node2']]
+            score = float(row['combined_score']) * 1000.0 if has_score else 1.0
+            edges      += [[i, j], [j, i]]
+            edge_scores += [[score], [score]]
+
     edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous().to(DEVICE)
-    edge_attr  = torch.tensor(attrs, dtype=torch.float).to(DEVICE)
+    edge_attr  = torch.tensor(edge_scores, dtype=torch.float).to(DEVICE)
 
     model = BioGNN(1, 128, len(CLASSES), edge_dim=1).to(DEVICE)
-    state = torch.load(MODEL_PATH, map_location=DEVICE)
+    state = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=True)
     model.load_state_dict(state)
     model.eval()
-    print(f"Модел зареден: {len(gene_list)} гена, {edge_index.shape[1]} ребра")
+    print(f"Model loaded: {len(gene_list)} genes, {edge_index.shape[1]} edges, "
+          f"edge_attr [{edge_attr.min().item():.3f}, {edge_attr.max().item():.3f}]")
 
 
 load_resources()
@@ -115,10 +81,10 @@ load_resources()
 # ── Помощни функции ────────────────────────────────────────────────────────────
 
 def build_patient_graph(expr_series: pd.Series):
-    values = []
-    for gene in gene_list:
-        values.append(float(expr_series.get(gene, 0.0)))
-    x = torch.tensor(values, dtype=torch.float).view(-1, 1).to(DEVICE)
+    values = [float(expr_series.get(gene, 0.0)) for gene in gene_list]
+    x     = torch.tensor(values, dtype=torch.float).view(-1, 1).to(DEVICE)
+    mu, sd = x.mean(), x.std() + 1e-8
+    x     = (x - mu) / sd
     batch = torch.zeros(len(gene_list), dtype=torch.long).to(DEVICE)
     return x, batch
 
@@ -129,9 +95,8 @@ def top_attention_edges(attn_weights, top_n=50):
     src, dst = ei[0].numpy(), ei[1].numpy()
 
     results = []
-    seen = set()
-    order = np.argsort(scores)[::-1]
-    for idx in order:
+    seen    = set()
+    for idx in np.argsort(scores)[::-1]:
         s, d, sc = int(src[idx]), int(dst[idx]), float(scores[idx])
         pair = tuple(sorted([s, d]))
         if pair in seen:
@@ -174,11 +139,11 @@ async def predict(file: UploadFile = File(...)):
         top_edges = top_attention_edges(attn)
 
         results.append({
-            "patient_id":   patient_id,
-            "prediction":   CLASSES[pred_idx],
-            "confidence":   round(float(probs[pred_idx]) * 100, 1),
+            "patient_id":    patient_id,
+            "prediction":    CLASSES[pred_idx],
+            "confidence":    round(float(probs[pred_idx]) * 100, 1),
             "probabilities": {c: round(float(p) * 100, 1) for c, p in zip(CLASSES, probs)},
-            "top_edges":    top_edges,
+            "top_edges":     top_edges,
         })
 
     return JSONResponse(results)
@@ -189,8 +154,7 @@ def discoveries():
     """Агрегирани attention weights върху целия TCGA датасет."""
     edge_scores: dict[tuple, list] = {}
 
-    patients = tcga_expr.columns[:200]  # sample за бързина
-    for patient in patients:
+    for patient in tcga_expr.columns:
         x, batch = build_patient_graph(tcga_expr[patient])
         with torch.no_grad():
             _, attn = model(x, edge_index, batch,
@@ -211,7 +175,8 @@ def discoveries():
         g1, g2 = gene_list[s], gene_list[d]
         nodes_set.update([g1, g2])
         edges_out.append({
-            "source": g1, "target": g2,
+            "source": g1,
+            "target": g2,
             "weight": round(float(np.mean(sc_list)), 6),
             "std":    round(float(np.std(sc_list)), 6),
         })
@@ -233,16 +198,16 @@ def gene_statistics(gene1: str, gene2: str):
     spearman_r, spearman_p = stats.spearmanr(expr1, expr2)
 
     return {
-        "gene1": gene1,
-        "gene2": gene2,
-        "pearson_r":   round(float(pearson_r), 4),
-        "pearson_p":   float(f"{pearson_p:.2e}"),
-        "spearman_r":  round(float(spearman_r), 4),
-        "spearman_p":  float(f"{spearman_p:.2e}"),
-        "mean_expr1":  round(float(np.mean(expr1)), 4),
-        "mean_expr2":  round(float(np.mean(expr2)), 4),
-        "std_expr1":   round(float(np.std(expr1)), 4),
-        "std_expr2":   round(float(np.std(expr2)), 4),
-        "n_samples":   len(expr1),
+        "gene1":      gene1,
+        "gene2":      gene2,
+        "pearson_r":  round(float(pearson_r), 4),
+        "pearson_p":  float(f"{pearson_p:.2e}"),
+        "spearman_r": round(float(spearman_r), 4),
+        "spearman_p": float(f"{spearman_p:.2e}"),
+        "mean_expr1": round(float(np.mean(expr1)), 4),
+        "mean_expr2": round(float(np.mean(expr2)), 4),
+        "std_expr1":  round(float(np.std(expr1)), 4),
+        "std_expr2":  round(float(np.std(expr2)), 4),
+        "n_samples":  len(expr1),
         "significant": bool(pearson_p < 0.05),
     }
