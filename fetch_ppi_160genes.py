@@ -39,7 +39,8 @@ for i in range(0, len(genes), CHUNK_SIZE):
                     all_edges.append({
                         'node1':         parts[2],
                         'node2':         parts[3],
-                        'combined_score': float(parts[5]) / 1000.0
+                        # STRING tsv-no-header/network връща score в [0,1] — запазваме директно
+                        'combined_score': float(parts[5])
                     })
         else:
             print(f"    Грешка: {r.status_code}")

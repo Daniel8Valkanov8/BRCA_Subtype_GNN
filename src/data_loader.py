@@ -85,8 +85,10 @@ def build_graph_dataset(exp_df: pd.DataFrame,
     for _, row in ppi_df.iterrows():
         if row['node1'] in gene_map and row['node2'] in gene_map:
             i, j = gene_map[row['node1']], gene_map[row['node2']]
-            # STRING combined_score е в диапазон 0–1000; нормализираме до [0,1]
-            score = float(row['combined_score']) / 1000.0 if has_score else 1.0
+            # STRING API върна стойности в [0,1]; fetch_ppi_160genes.py:42 ги е делил
+            # погрешно на 1000 (TSV съдържа ~0.0004–0.001 вместо 0.4–1.0).
+            # Умножаваме по 1000, за да възстановим правилния диапазон [0.4, 1.0].
+            score = float(row['combined_score']) * 1000.0 if has_score else 1.0
             edge_index_list += [[i, j], [j, i]]
             edge_attr_list  += [[score], [score]]
 
