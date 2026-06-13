@@ -1,0 +1,101 @@
+BASELINE COMPARISON — BRCA Subtype Classification
+========================================================================
+Данни: TCGA brca_tcga_pan_can_atlas_2018 | 981 пациента | 157 гена
+CV: 5-Fold StratifiedKFold (random_state=42)
+Нормализация: per-patient z-score (идентично на GNN)
+
+
+Модел                     Acc (mean ± std)       Macro F1 (mean ± std)
+------------------------------------------------------------------------
+Majority class            0.5087 ± 0.0020          0.1349 ± 0.0004
+Logistic Regression       0.8858 ± 0.0026          0.8560 ± 0.0175
+Random Forest             0.8787 ± 0.0131          0.7752 ± 0.0452
+MLP                       0.8715 ± 0.0239          0.8009 ± 0.0650
+------------------------------------------------------------------------
+Exp A — GATConv GNN       0.5453 ± 0.0660        0.4579 ± 0.0797
+V5 — GATv2Conv GNN        0.5535 ± 0.0441        0.4001 ± 0.0290
+------------------------------------------------------------------------
+
+
+=== Majority class — Fold breakdown ===
+  Fold 1: acc=0.5076  f1=0.1347
+  Fold 2: acc=0.5102  f1=0.1351
+  Fold 3: acc=0.5102  f1=0.1351
+  Fold 4: acc=0.5102  f1=0.1351
+  Fold 5: acc=0.5051  f1=0.1342
+
+=== Majority class — Per-class F1 (combined validation) ===
+              precision    recall  f1-score   support
+
+  BRCA_Basal     0.0000    0.0000    0.0000       171
+   BRCA_Her2     0.0000    0.0000    0.0000        78
+   BRCA_LumA     0.5087    1.0000    0.6743       499
+   BRCA_LumB     0.0000    0.0000    0.0000       197
+ BRCA_Normal     0.0000    0.0000    0.0000        36
+
+    accuracy                         0.5087       981
+   macro avg     0.1017    0.2000    0.1349       981
+weighted avg     0.2587    0.5087    0.3430       981
+
+
+=== Logistic Regression — Fold breakdown ===
+  Fold 1: acc=0.8883  f1=0.8508
+  Fold 2: acc=0.8878  f1=0.8461
+  Fold 3: acc=0.8878  f1=0.8346
+  Fold 4: acc=0.8827  f1=0.8860
+  Fold 5: acc=0.8827  f1=0.8625
+
+=== Logistic Regression — Per-class F1 (combined validation) ===
+              precision    recall  f1-score   support
+
+  BRCA_Basal     0.9824    0.9766    0.9795       171
+   BRCA_Her2     0.8072    0.8590    0.8323        78
+   BRCA_LumA     0.9216    0.8958    0.9085       499
+   BRCA_LumB     0.7805    0.8122    0.7960       197
+ BRCA_Normal     0.7368    0.7778    0.7568        36
+
+    accuracy                         0.8858       981
+   macro avg     0.8457    0.8643    0.8546       981
+weighted avg     0.8880    0.8858    0.8867       981
+
+
+=== Random Forest — Fold breakdown ===
+  Fold 1: acc=0.8782  f1=0.8016
+  Fold 2: acc=0.8827  f1=0.7911
+  Fold 3: acc=0.8980  f1=0.8079
+  Fold 4: acc=0.8571  f1=0.6858
+  Fold 5: acc=0.8776  f1=0.7898
+
+=== Random Forest — Per-class F1 (combined validation) ===
+              precision    recall  f1-score   support
+
+  BRCA_Basal     0.9653    0.9766    0.9709       171
+   BRCA_Her2     0.8971    0.7821    0.8356        78
+   BRCA_LumA     0.8600    0.9599    0.9072       499
+   BRCA_LumB     0.8391    0.7411    0.7871       197
+ BRCA_Normal     1.0000    0.2500    0.4000        36
+
+    accuracy                         0.8787       981
+   macro avg     0.9123    0.7419    0.7802       981
+weighted avg     0.8822    0.8787    0.8699       981
+
+
+=== MLP — Fold breakdown ===
+  Fold 1: acc=0.8832  f1=0.7896
+  Fold 2: acc=0.9031  f1=0.8885
+  Fold 3: acc=0.8367  f1=0.6996
+  Fold 4: acc=0.8520  f1=0.7763
+  Fold 5: acc=0.8827  f1=0.8506
+
+=== MLP — Per-class F1 (combined validation) ===
+              precision    recall  f1-score   support
+
+  BRCA_Basal     0.9767    0.9825    0.9796       171
+   BRCA_Her2     0.8049    0.8462    0.8250        78
+   BRCA_LumA     0.8842    0.9178    0.9007       499
+   BRCA_LumB     0.7708    0.7513    0.7609       197
+ BRCA_Normal     0.8824    0.4167    0.5660        36
+
+    accuracy                         0.8716       981
+   macro avg     0.8638    0.7829    0.8064       981
+weighted avg     0.8712    0.8716    0.8681       981
