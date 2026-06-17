@@ -6,3 +6,7 @@ __pycache__/
 
 # Игнорираме данни (.txt генни файлове от cBioPortal), но НЕ requirements.txt
 data/*.txt
+
+# Лог файлове и node_modules
+*.log
+ui/frontend/node_modules/

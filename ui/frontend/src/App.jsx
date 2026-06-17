@@ -1,14 +1,25 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import PredictionTab from './components/PredictionTab'
 import DiscoveriesTab from './components/DiscoveriesTab'
+import BrainTab from './components/BrainTab'
 
 const TABS = [
-  { id: 'predict',     label: '🔬 Предсказване',           desc: 'Анализ на пациент' },
+  { id: 'predict',     label: '🔬 Предсказване',              desc: 'Анализ на пациент' },
   { id: 'discoveries', label: '🧬 Биологични закономерности', desc: 'Нови открития' },
+  { id: 'brain',       label: '🧠 Мозъкът на модела',         desc: '3D Attention Flow' },
 ]
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('predict')
+  const [activeTab,        setActiveTab]        = useState('predict')
+  const [patientBrainData, setPatientBrainData] = useState(null)
+  const [apiStatus,        setApiStatus]        = useState(null)
+
+  useEffect(() => {
+    axios.get('/api/health')
+      .then(r => setApiStatus(r.data))
+      .catch(() => {})
+  }, [])
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -24,8 +35,10 @@ export default function App() {
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span className="w-2 h-2 bg-green-400 rounded-full inline-block animate-pulse"></span>
-          Модел зареден · 160 гена · Tesla T4
+          <span className="w-2 h-2 bg-green-400 rounded-full inline-block animate-pulse" />
+          {apiStatus
+            ? `Модел зареден · ${apiStatus.genes} гена · ${apiStatus.device.toUpperCase()}`
+            : 'Зареждане...'}
         </div>
       </header>
 
@@ -49,8 +62,9 @@ export default function App() {
 
       {/* Content */}
       <main className="flex-1 px-8 py-6">
-        {activeTab === 'predict'      && <PredictionTab />}
+        {activeTab === 'predict'      && <PredictionTab onPatientAnalyzed={setPatientBrainData} />}
         {activeTab === 'discoveries'  && <DiscoveriesTab />}
+        {activeTab === 'brain'        && <BrainTab patientBrainData={patientBrainData} />}
       </main>
     </div>
   )

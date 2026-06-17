@@ -6,7 +6,7 @@ import requests
 import pandas as pd
 import time
 
-expr     = pd.read_csv('data/tcga_expression_174genes.csv', index_col=0)
+expr     = pd.read_csv('data/tcga_expression_160genes.csv', index_col=0)
 genes    = list(expr.index)
 print(f"Гени за заявка: {len(genes)}")
 

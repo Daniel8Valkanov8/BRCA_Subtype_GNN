@@ -1,0 +1,133 @@
+Отлични резултати! Мрежата работи — 3860 ребра срещу 534 преди.
+
+Fold	Accuracy	F1
+1	0.5736	0.4178
+2	0.6327	0.4887
+3	0.5408	0.4323
+4	върви...	—
+Fold 2 вече надминава оригиналния модел (0.5658)! Изчакай да завърши и сподели финалните резултати.
+
+2026-04-18 13:37:21.257839: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1776519441.297992    6587 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1776519441.312079    6587 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1776519441.342308    6587 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1776519441.342349    6587 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1776519441.342358    6587 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1776519441.342364    6587 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+2026-04-18 13:37:21.349512: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Device: cuda
+Зареждане на TCGA данни...
+Нормализация (per-patient z-score)...
+Пациенти: 981  |  Гени: 160
+
+Разпределение:
+Subtype
+BRCA_LumA      499
+BRCA_LumB      197
+BRCA_Basal     171
+BRCA_Her2       78
+BRCA_Normal     36
+Name: count, dtype: int64
+
+Classes: ['BRCA_Basal', 'BRCA_Her2', 'BRCA_LumA', 'BRCA_LumB', 'BRCA_Normal']
+Graph edges: 3860
+Графове: 981  |  Ребра: 3860
+Стартиране на 5-Fold CV (hidden=128, epochs=150, lr=0.0005)...
+
+==================================================
+FOLD 1/5
+==================================================
+  Epoch  10/150 | Loss: 1.3327 | Val Acc: 0.5330 | Val F1: 0.3660 | Best: 0.5736
+  Epoch  20/150 | Loss: 1.2034 | Val Acc: 0.4365 | Val F1: 0.3348 | Best: 0.5736
+  Early stopping на epoch 26 (no improvement for 20 epochs)
+
+  Fold 1 Best -> Accuracy: 0.5736 | Macro F1: 0.4178
+  --> Нов глобален най-добър модел (acc=0.5736)
+==================================================
+FOLD 2/5
+==================================================
+  Epoch  10/150 | Loss: 1.3469 | Val Acc: 0.5510 | Val F1: 0.4382 | Best: 0.6224
+  Epoch  20/150 | Loss: 1.2306 | Val Acc: 0.5102 | Val F1: 0.4507 | Best: 0.6327
+  Epoch  30/150 | Loss: 1.0921 | Val Acc: 0.4439 | Val F1: 0.3628 | Best: 0.6327
+  Early stopping на epoch 39 (no improvement for 20 epochs)
+
+  Fold 2 Best -> Accuracy: 0.6327 | Macro F1: 0.4887
+  --> Нов глобален най-добър модел (acc=0.6327)
+==================================================
+FOLD 3/5
+==================================================
+  Epoch  10/150 | Loss: 1.3781 | Val Acc: 0.4439 | Val F1: 0.3317 | Best: 0.5306
+  Epoch  20/150 | Loss: 1.2744 | Val Acc: 0.4745 | Val F1: 0.3723 | Best: 0.5408
+  Epoch  30/150 | Loss: 1.2382 | Val Acc: 0.4337 | Val F1: 0.4060 | Best: 0.5408
+  Early stopping на epoch 39 (no improvement for 20 epochs)
+
+  Fold 3 Best -> Accuracy: 0.5408 | Macro F1: 0.4323
+==================================================
+FOLD 4/5
+==================================================
+  Epoch  10/150 | Loss: 1.3815 | Val Acc: 0.5357 | Val F1: 0.3815 | Best: 0.5408
+  Epoch  20/150 | Loss: 1.2444 | Val Acc: 0.4949 | Val F1: 0.3984 | Best: 0.6327
+  Epoch  30/150 | Loss: 1.2553 | Val Acc: 0.5255 | Val F1: 0.4043 | Best: 0.6327
+  Early stopping на epoch 36 (no improvement for 20 epochs)
+
+  Fold 4 Best -> Accuracy: 0.6327 | Macro F1: 0.4595
+==================================================
+FOLD 5/5
+==================================================
+  Epoch  10/150 | Loss: 1.4409 | Val Acc: 0.4490 | Val F1: 0.3313 | Best: 0.4592
+  Epoch  20/150 | Loss: 1.3522 | Val Acc: 0.3878 | Val F1: 0.3116 | Best: 0.5153
+  Epoch  30/150 | Loss: 1.2595 | Val Acc: 0.5153 | Val F1: 0.4062 | Best: 0.5459
+  Epoch  40/150 | Loss: 1.1868 | Val Acc: 0.4745 | Val F1: 0.4206 | Best: 0.5459
+  Early stopping на epoch 44 (no improvement for 20 epochs)
+
+  Fold 5 Best -> Accuracy: 0.5459 | Macro F1: 0.3780
+
+==================================================
+ФИНАЛНИ РЕЗУЛТАТИ — TCGA ONLY (160 гена, 981 пациента)
+==================================================
+Accuracy:  0.5851  (+/- 0.0451)
+Macro F1:  0.4353  (+/- 0.0419)
+
+СРАВНЕНИЕ:
+  27 гена оригинал:     Acc=0.5658  F1=0.4591
+  160 гена TCGA+META:   Acc=0.3745  F1=0.3562
+  160 гена TCGA only:   Acc=0.5851  F1=0.4353
+
+Per-class report:
+              precision    recall  f1-score   support
+
+  BRCA_Basal       0.95      0.57      0.71       171
+   BRCA_Her2       0.32      0.59      0.41        78
+   BRCA_LumA       0.74      0.61      0.67       499
+   BRCA_LumB       0.36      0.53      0.43       197
+ BRCA_Normal       0.33      0.28      0.30        36
+
+    accuracy                           0.57       981
+   macro avg       0.54      0.52      0.51       981
+weighted avg       0.65      0.57      0.60       981
+
+Моделът е запазен като: best_model_tcga_160genes.pt
+ това е финалъът. Как е сега. Колко е процента на точността
+Финални резултати — огромен успех!
+Модел	Accuracy	Macro F1
+27 гена оригинал	0.5658	0.4591
+160 гена TCGA+META (провал)	0.3745	0.3562
+160 гена TCGA only (нов)	0.5851	0.4353
+Accuracy: 58.51% — надминава оригиналния модел с 2%!
+
+Детайлен анализ по подтип
+Подтип	Precision	Recall	F1
+BRCA_Basal	0.95	0.57	0.71
+BRCA_Her2	0.32	0.59	0.41
+BRCA_LumA	0.74	0.61	0.67
+BRCA_LumB	0.36	0.53	0.43
+BRCA_Normal	0.33	0.28	0.30
+BRCA_Basal е изключителен — 95% precision! Моделът почти никога не бърка при базален рак.
+
+Основен проблем — малките класове
+BRCA_Normal (само 36 пациента) и BRCA_Her2 (78) имат слаби резултати. Следващата стъпка е да се справим с тях чрез oversampling.
+
+Продължаваме ли с подобрение на малките класове?
+

@@ -1,0 +1,5 @@
+cd "c:/Users/danie/Desktop/Master_Thesis_GNN/ui/frontend"
+npm run dev
+cd "c:/Users/danie/Desktop/Master_Thesis_GNN/ui/backend"
+../../venv/Scripts/python -m uvicorn main:app --reload
+http://localhost:5173

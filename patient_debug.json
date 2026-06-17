@@ -1,0 +1,277 @@
+{
+    "data": {
+        "hits": [
+            {
+                "id": "17ca61a2-607a-45ff-88fa-ef72e80bf891",
+                "submitter_slide_ids": [
+                    "TCGA-BH-A0HF-01Z-00-DX1",
+                    "TCGA-BH-A0HF-01A-01-BSA",
+                    "TCGA-BH-A0HF-01A-01-TSA"
+                ],
+                "submitter_analyte_ids": [
+                    "TCGA-BH-A0HF-01A-11R",
+                    "TCGA-BH-A0HF-10A-01X",
+                    "TCGA-BH-A0HF-10A-01D",
+                    "TCGA-BH-A0HF-10A-01W",
+                    "TCGA-BH-A0HF-01A-11X",
+                    "TCGA-BH-A0HF-01A-11D",
+                    "TCGA-BH-A0HF-01A-11W"
+                ],
+                "created_datetime": null,
+                "diagnosis_ids": [
+                    "14047651-e3d9-5a6a-b989-19b0548d8193"
+                ],
+                "updated_datetime": "2025-01-05T20:52:45.420626-06:00",
+                "case_id": "17ca61a2-607a-45ff-88fa-ef72e80bf891",
+                "follow_ups": [
+                    {
+                        "timepoint_category": "Follow-up",
+                        "follow_up_id": "23650eee-9b64-40b4-aa8a-312387dc029b",
+                        "updated_datetime": "2025-01-08T12:58:05.350809-06:00",
+                        "submitter_id": "TCGA-BH-A0HF_follow_up2",
+                        "disease_response": "TF-Tumor Free",
+                        "state": "released",
+                        "days_to_follow_up": 727,
+                        "created_datetime": "2025-01-05T20:52:45.420626-06:00"
+                    },
+                    {
+                        "timepoint_category": "Last Contact",
+                        "follow_up_id": "c9c17474-0893-4552-8ae4-a601d93daaea",
+                        "updated_datetime": "2025-01-08T12:58:05.350809-06:00",
+                        "submitter_id": "TCGA-BH-A0HF_follow_up",
+                        "disease_response": "TF-Tumor Free",
+                        "state": "released",
+                        "days_to_follow_up": 727,
+                        "created_datetime": "2025-01-05T20:52:45.420626-06:00"
+                    },
+                    {
+                        "follow_up_id": "d1040dfc-9043-5c28-a125-2457ae1a9adf"
+                    },
+                    {
+                        "follow_up_id": "2a501da3-e435-567d-a748-345f6ea7fa20"
+                    },
+                    {
+                        "follow_up_id": "28d3bf96-1c96-50ab-a02b-59b5b28441da"
+                    },
+                    {
+                        "follow_up_id": "88045db2-df5a-5bf6-be33-c28e1f643ad0"
+                    }
+                ],
+                "state": "released",
+                "portion_ids": [
+                    "2481aa56-af28-4b37-ae92-97d90aac33ec",
+                    "f1003e8d-1987-40dc-91cd-84fb17916647"
+                ],
+                "submitter_portion_ids": [
+                    "TCGA-BH-A0HF-01A-11",
+                    "TCGA-BH-A0HF-10A-01"
+                ],
+                "slide_ids": [
+                    "e917388d-c4db-4345-b7de-172bc1894173",
+                    "7ded795f-16d8-44ef-b26f-5f6fdd25fc1b",
+                    "a60d4afa-d5c8-422f-8f3f-7ce680538baf"
+                ],
+                "disease_type": "Ductal and Lobular Neoplasms",
+                "analyte_ids": [
+                    "7f958960-14a7-4608-8581-2316e1ae009c",
+                    "dcae2e32-e74d-424e-b02f-fbce825db52c",
+                    "d33c10f4-9477-4729-a9fa-56fe4ac5f13a",
+                    "81ccf303-5719-4faf-998f-2419763d4574",
+                    "a388b97a-3aa7-4be4-966f-10360a0c1a5a",
+                    "f6e77484-5cc2-484c-9232-4dbfab8c371f",
+                    "c7196187-103d-41a8-ad01-50f0025b3762"
+                ],
+                "submitter_id": "TCGA-BH-A0HF",
+                "days_to_consent": 6,
+                "aliquot_ids": [
+                    "29bd373e-7b9a-401a-b817-bd77ddb5fd4d",
+                    "4b65014f-c26c-4bf5-8c8e-756a3252ae56",
+                    "5b92fd62-9fec-4b18-b7c3-50c88fa0d464",
+                    "5caa4a42-cc60-42d0-bb1a-d274ee1c85ea",
+                    "9a3fc856-abca-4e22-9474-599b672e007a",
+                    "fa7a4112-565e-4710-a98e-177f1c63363a",
+                    "9b7cbd13-f7c7-412b-a3ff-fc69556f3656",
+                    "f2a19bf9-bd83-4573-a7a8-fcdab8c3f758",
+                    "4712e99c-039d-4dce-93d3-0703fea2e215",
+                    "598d5706-eedb-4d5a-9048-4ac324573025",
+                    "e8c71380-660a-43b0-8166-343e0ab47e21",
+                    "6116e3af-4c46-4be9-98b3-ef1d6c3cdf65",
+                    "7b7ee09a-61cb-4c23-8108-bc1ed0cf149b",
+                    "b866a34a-6b4d-44d6-8155-10d55f9a7798",
+                    "d1f4ef0b-7909-4196-839d-e664a223290e",
+                    "b181781c-13d5-4a16-b817-7f0071c44cbc",
+                    "7394a6de-3ece-4cc4-a2a0-80c9dc81484d",
+                    "464a1d47-a56a-4667-b4c5-911e5d4a7363",
+                    "fe74e8fd-5223-4cd1-86bc-58d72d891f6c",
+                    "746438b0-55f5-4b5a-bd03-dc463b46d4c2"
+                ],
+                "submitter_aliquot_ids": [
+                    "TCGA-BH-A0HF-10A-01D-A075-09",
+                    "TCGA-BH-A0HF-10A-01D-A074-08",
+                    "TCGA-BH-A0HF-10A-01W-A070-08",
+                    "TCGA-BH-A0HF-01A-11D-A075-09",
+                    "TCGA-BH-A0HF-10A-01D-A059-01",
+                    "TCGA-BH-A0HF-01A-11R-A056-07",
+                    "TCGA-BH-A0HF-01A-11D-A058-05",
+                    "TCGA-BH-A0HF-01A-11D-A10P-05",
+                    "TCGA-BH-A0HF-01A-11D-A060-02",
+                    "TCGA-BH-A0HF-01A-11W-A071-09",
+                    "TCGA-BH-A0HF-01A-11W-A070-08",
+                    "TCGA-BH-A0HF-01A-11R-A057-13",
+                    "TCGA-BH-A0HF-10A-01X-A072-08",
+                    "TCGA-BH-A0HF-01A-11X-A073-09",
+                    "TCGA-BH-A0HF-10A-01X-A073-09",
+                    "TCGA-BH-A0HF-10A-01W-A071-09",
+                    "TCGA-BH-A0HF-10A-01D-A060-02",
+                    "TCGA-BH-A0HF-01A-11D-A074-08",
+                    "TCGA-BH-A0HF-01A-11X-A072-08",
+                    "TCGA-BH-A0HF-01A-11D-A059-01"
+                ],
+                "diagnoses": [
+                    {
+                        "synchronous_malignancy": "No",
+                        "ajcc_pathologic_stage": "Stage IA",
+                        "days_to_diagnosis": 0,
+                        "laterality": "Right",
+                        "created_datetime": null,
+                        "last_known_disease_status": null,
+                        "tissue_or_organ_of_origin": "Breast, NOS",
+                        "days_to_last_follow_up": 727.0,
+                        "age_at_diagnosis": 28233,
+                        "primary_diagnosis": "Infiltrating duct carcinoma, NOS",
+                        "updated_datetime": "2025-10-24T10:03:04.457495-05:00",
+                        "prior_malignancy": "no",
+                        "year_of_diagnosis": 2008,
+                        "state": "released",
+                        "prior_treatment": "No",
+                        "diagnosis_is_primary_disease": true,
+                        "days_to_last_known_disease_status": null,
+                        "method_of_diagnosis": "Core Biopsy",
+                        "ajcc_pathologic_t": "T1c",
+                        "days_to_recurrence": null,
+                        "morphology": "8500/3",
+                        "ajcc_pathologic_n": "N0 (i-)",
+                        "ajcc_pathologic_m": "M0",
+                        "submitter_id": "TCGA-BH-A0HF_diagnosis",
+                        "classification_of_tumor": "primary",
+                        "diagnosis_id": "14047651-e3d9-5a6a-b989-19b0548d8193",
+                        "icd_10_code": "C50.9",
+                        "site_of_resection_or_biopsy": "Breast, NOS",
+                        "tumor_grade": null,
+                        "sites_of_involvement": [
+                            "Breast, Right Upper Outer",
+                            "Breast, NOS"
+                        ],
+                        "progression_or_recurrence": null
+                    }
+                ],
+                "samples": [
+                    {
+                        "intermediate_dimension": null,
+                        "tumor_descriptor": "Primary",
+                        "time_between_clamping_and_freezing": null,
+                        "sample_id": "7ea6d404-9d2c-4b69-ac8b-d9ccd2d6cc65",
+                        "freezing_method": null,
+                        "pathology_report_uuid": "71291A56-C2DB-4EB9-8223-DD7563CBBDC9",
+                        "submitter_id": "TCGA-BH-A0HF-01A",
+                        "tumor_code_id": null,
+                        "shortest_dimension": null,
+                        "sample_type": "Primary Tumor",
+                        "created_datetime": null,
+                        "time_between_excision_and_freezing": null,
+                        "specimen_type": "Solid Tissue",
+                        "updated_datetime": "2023-11-08T11:06:28.481482-06:00",
+                        "days_to_sample_procurement": null,
+                        "longest_dimension": null,
+                        "days_to_collection": 549,
+                        "state": "released",
+                        "current_weight": null,
+                        "initial_weight": 40.0,
+                        "tissue_type": "Tumor",
+                        "preservation_method": "OCT"
+                    },
+                    {
+                        "tumor_descriptor": "Primary",
+                        "specimen_type": "Solid Tissue",
+                        "updated_datetime": "2023-11-08T11:17:33.420637-06:00",
+                        "days_to_sample_procurement": 0,
+                        "sample_id": "88899a4d-11e7-46bc-8d9f-1f0a339a3281",
+                        "submitter_id": "TCGA-BH-A0HF-01Z",
+                        "state": "released",
+                        "sample_type": "Primary Tumor",
+                        "tissue_type": "Tumor",
+                        "preservation_method": "FFPE",
+                        "created_datetime": "2018-05-17T12:10:31.746556-05:00"
+                    },
+                    {
+                        "intermediate_dimension": null,
+                        "tumor_descriptor": "Not Applicable",
+                        "time_between_clamping_and_freezing": null,
+                        "sample_id": "f400106b-d7dd-40ee-a71a-a2ad9d5b31f4",
+                        "freezing_method": null,
+                        "pathology_report_uuid": null,
+                        "submitter_id": "TCGA-BH-A0HF-10A",
+                        "tumor_code_id": null,
+                        "shortest_dimension": null,
+                        "sample_type": "Blood Derived Normal",
+                        "created_datetime": null,
+                        "time_between_excision_and_freezing": null,
+                        "specimen_type": "Peripheral Blood NOS",
+                        "updated_datetime": "2023-04-28T12:05:43.207817-05:00",
+                        "days_to_sample_procurement": null,
+                        "longest_dimension": null,
+                        "days_to_collection": 549,
+                        "state": "released",
+                        "current_weight": null,
+                        "initial_weight": null,
+                        "tissue_type": "Normal",
+                        "preservation_method": "Unknown"
+                    }
+                ],
+                "sample_ids": [
+                    "f400106b-d7dd-40ee-a71a-a2ad9d5b31f4",
+                    "88899a4d-11e7-46bc-8d9f-1f0a339a3281",
+                    "7ea6d404-9d2c-4b69-ac8b-d9ccd2d6cc65"
+                ],
+                "consent_type": "Informed Consent",
+                "demographic": {
+                    "race": "white",
+                    "gender": "female",
+                    "ethnicity": "not reported",
+                    "vital_status": "Alive",
+                    "age_at_index": 77,
+                    "submitter_id": "TCGA-BH-A0HF_demographic",
+                    "days_to_birth": -28233,
+                    "created_datetime": null,
+                    "year_of_birth": null,
+                    "demographic_id": "0998f15e-63c1-52ed-88c4-6df5a1a58cd3",
+                    "updated_datetime": "2025-10-16T15:37:57.727947-05:00",
+                    "age_is_obfuscated": false,
+                    "state": "released",
+                    "sex_at_birth": "female",
+                    "year_of_death": null
+                },
+                "submitter_sample_ids": [
+                    "TCGA-BH-A0HF-10A",
+                    "TCGA-BH-A0HF-01Z",
+                    "TCGA-BH-A0HF-01A"
+                ],
+                "primary_site": "Breast",
+                "submitter_diagnosis_ids": [
+                    "TCGA-BH-A0HF_diagnosis"
+                ],
+                "index_date": "Diagnosis"
+            }
+        ],
+        "pagination": {
+            "count": 1,
+            "total": 1,
+            "size": 10,
+            "from": 0,
+            "sort": "",
+            "page": 1,
+            "pages": 1
+        }
+    },
+    "warnings": {}
+}

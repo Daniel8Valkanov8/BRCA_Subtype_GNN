@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
 import NetworkGraph from './NetworkGraph'
@@ -19,11 +19,22 @@ const SUBTYPE_INFO = {
   BRCA_Normal: 'Нормал-подобен — наподобява нормална тъкан, добра прогноза',
 }
 
-export default function PredictionTab() {
+export default function PredictionTab({ onPatientAnalyzed }) {
   const [loading,  setLoading]  = useState(false)
   const [results,  setResults]  = useState(null)
   const [selected, setSelected] = useState(0)
   const [error,    setError]    = useState(null)
+
+  useEffect(() => {
+    const cur = results?.[selected]
+    if (cur?.brain_layers) {
+      onPatientAnalyzed?.({
+        patient_id:   cur.patient_id,
+        prediction:   cur.prediction,
+        brain_layers: cur.brain_layers,
+      })
+    }
+  }, [results, selected])
 
   const onDrop = useCallback(async (files) => {
     if (!files.length) return

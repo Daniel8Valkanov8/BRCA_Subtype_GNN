@@ -25,7 +25,7 @@ print("Зареждане на данни...")
 # TCGA
 clinical_df = pd.read_csv('data/brca_tcga_pan_can_atlas_2018_clinical_data.tsv',
                           sep='\t', comment='#').dropna(subset=['Subtype'])
-tcga_expr   = pd.read_csv('data/tcga_expression_174genes.csv', index_col=0)
+tcga_expr   = pd.read_csv('data/tcga_expression_160genes.csv', index_col=0)
 common_tcga = sorted(set(clinical_df['Sample ID']) & set(tcga_expr.columns))
 tcga_expr   = tcga_expr[common_tcga].fillna(0)
 tcga_clin   = clinical_df.set_index('Sample ID').loc[common_tcga, ['Subtype']]

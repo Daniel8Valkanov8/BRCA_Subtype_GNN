@@ -61,8 +61,8 @@ df_expr = df_long.pivot_table(index='gene', columns='sampleId', values='value', 
 df_expr = df_expr.dropna(how='all')
 
 print(f"  Матрица: {df_expr.shape} (гени x пациенти)")
-df_expr.to_csv('data/tcga_expression_174genes.csv')
-print("  Запазено: data/tcga_expression_174genes.csv")
+df_expr.to_csv('data/tcga_expression_160genes.csv')
+print("  Запазено: data/tcga_expression_160genes.csv")
 
 # --- СТЪПКА 3: Нова PPI мрежа от STRING за 174-те гена ---
 print(f"\nСтъпка 3: Изтегляме PPI мрежа от STRING за {len(found)} гена...")

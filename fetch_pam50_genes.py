@@ -1,6 +1,6 @@
 """
 Изтегля 38-те липсващи PAM50 гени от cBioPortal API
-и ги добавя към tcga_expression_174genes.csv
+и ги добавя към tcga_expression_160genes.csv
 """
 import requests
 import pandas as pd
@@ -45,7 +45,7 @@ print(f"\n  Избран профил: {profile_id}")
 
 # ── Стъпка 2: вземи sample IDs ─────────────────────────────────────────────
 print("\nСтъпка 2: Зареждане на sample IDs от нашия CSV...")
-existing = pd.read_csv('data/tcga_expression_174genes.csv', index_col=0)
+existing = pd.read_csv('data/tcga_expression_160genes.csv', index_col=0)
 sample_ids = list(existing.columns)
 print(f"  Пациенти: {len(sample_ids)}")
 

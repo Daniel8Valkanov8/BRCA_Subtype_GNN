@@ -1,0 +1,134 @@
+2026-06-08 22:31:09.718926: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Device: cuda
+Зареждане на TCGA данни...
+Нормализация (per-patient z-score)...
+Пациенти: 981  |  Гени: 196
+
+Разпределение:
+Subtype
+BRCA_LumA      499
+BRCA_LumB      197
+BRCA_Basal     171
+BRCA_Her2       78
+BRCA_Normal     36
+Name: count, dtype: int64
+
+Classes: ['BRCA_Basal', 'BRCA_Her2', 'BRCA_LumA', 'BRCA_LumB', 'BRCA_Normal']
+Graph edges: 4180  |  edge_attr: torch.Size([4180, 1])
+Графове: 981  |  Ребра: 4180
+Стартиране на 5-Fold CV (hidden=128, epochs=150, lr=0.0005)...
+Подобрения: GATv2Conv + edge features + in-fold SMOTE
+
+==================================================
+FOLD 1/5
+==================================================
+  Train: 784 → 1995 пациента след SMOTE
+  Epoch  10/150 | Loss: 0.5268 | Val Acc: 0.2944 | Val F1: 0.2812 | Best: 0.4112
+  Epoch  20/150 | Loss: 0.3532 | Val Acc: 0.5279 | Val F1: 0.4520 | Best: 0.5279
+  Epoch  30/150 | Loss: 0.3148 | Val Acc: 0.5025 | Val F1: 0.4572 | Best: 0.6142
+  Epoch  40/150 | Loss: 0.2788 | Val Acc: 0.5787 | Val F1: 0.4557 | Best: 0.6142
+  Epoch  50/150 | Loss: 0.2113 | Val Acc: 0.5736 | Val F1: 0.4618 | Best: 0.6497
+  Epoch  60/150 | Loss: 0.2050 | Val Acc: 0.5838 | Val F1: 0.4744 | Best: 0.6650
+  Epoch  70/150 | Loss: 0.2096 | Val Acc: 0.6294 | Val F1: 0.4853 | Best: 0.6650
+  Early stopping на epoch 78 (no improvement for 20 epochs)
+
+  Fold 1 Best -> Accuracy: 0.6650 | Macro F1: 0.5216
+  --> Нов глобален най-добър модел (acc=0.6650)
+==================================================
+FOLD 2/5
+==================================================
+  Train: 785 → 1995 пациента след SMOTE
+  Epoch  10/150 | Loss: 0.5895 | Val Acc: 0.0867 | Val F1: 0.1187 | Best: 0.1633
+  Epoch  20/150 | Loss: 0.4333 | Val Acc: 0.2653 | Val F1: 0.2479 | Best: 0.2704
+  Epoch  30/150 | Loss: 0.3443 | Val Acc: 0.3673 | Val F1: 0.3346 | Best: 0.3929
+  Epoch  40/150 | Loss: 0.3220 | Val Acc: 0.4847 | Val F1: 0.4373 | Best: 0.5255
+  Epoch  50/150 | Loss: 0.2394 | Val Acc: 0.5765 | Val F1: 0.5028 | Best: 0.6224
+  Epoch  60/150 | Loss: 0.2278 | Val Acc: 0.6480 | Val F1: 0.5018 | Best: 0.6582
+  Epoch  70/150 | Loss: 0.2042 | Val Acc: 0.6224 | Val F1: 0.5242 | Best: 0.6582
+  Epoch  80/150 | Loss: 0.1876 | Val Acc: 0.6327 | Val F1: 0.5718 | Best: 0.6735
+  Epoch  90/150 | Loss: 0.1702 | Val Acc: 0.6173 | Val F1: 0.5805 | Best: 0.6888
+  Epoch 100/150 | Loss: 0.1465 | Val Acc: 0.6480 | Val F1: 0.5145 | Best: 0.6888
+  Epoch 110/150 | Loss: 0.1248 | Val Acc: 0.6684 | Val F1: 0.5397 | Best: 0.6939
+  Epoch 120/150 | Loss: 0.1362 | Val Acc: 0.6888 | Val F1: 0.5422 | Best: 0.6939
+  Early stopping на epoch 124 (no improvement for 20 epochs)
+
+  Fold 2 Best -> Accuracy: 0.6939 | Macro F1: 0.6185
+  --> Нов глобален най-добър модел (acc=0.6939)
+==================================================
+FOLD 3/5
+==================================================
+  Train: 785 → 1995 пациента след SMOTE
+  Epoch  10/150 | Loss: 0.5735 | Val Acc: 0.1276 | Val F1: 0.1170 | Best: 0.1429
+  Epoch  20/150 | Loss: 0.4216 | Val Acc: 0.1633 | Val F1: 0.1611 | Best: 0.2041
+  Epoch  30/150 | Loss: 0.3338 | Val Acc: 0.1888 | Val F1: 0.1372 | Best: 0.4796
+  Epoch  40/150 | Loss: 0.2973 | Val Acc: 0.5408 | Val F1: 0.3930 | Best: 0.5408
+  Epoch  50/150 | Loss: 0.2353 | Val Acc: 0.5153 | Val F1: 0.3952 | Best: 0.6276
+  Epoch  60/150 | Loss: 0.2097 | Val Acc: 0.5561 | Val F1: 0.4379 | Best: 0.6378
+  Epoch  70/150 | Loss: 0.1986 | Val Acc: 0.5867 | Val F1: 0.4527 | Best: 0.6378
+  Epoch  80/150 | Loss: 0.1962 | Val Acc: 0.5051 | Val F1: 0.4425 | Best: 0.6531
+  Epoch  90/150 | Loss: 0.1483 | Val Acc: 0.5867 | Val F1: 0.4712 | Best: 0.6531
+  Epoch 100/150 | Loss: 0.1699 | Val Acc: 0.5867 | Val F1: 0.5484 | Best: 0.6684
+  Epoch 110/150 | Loss: 0.1272 | Val Acc: 0.6327 | Val F1: 0.5269 | Best: 0.6684
+  Early stopping на epoch 111 (no improvement for 20 epochs)
+
+  Fold 3 Best -> Accuracy: 0.6684 | Macro F1: 0.5409
+==================================================
+FOLD 4/5
+==================================================
+  Train: 785 → 1995 пациента след SMOTE
+  Epoch  10/150 | Loss: 0.5923 | Val Acc: 0.1837 | Val F1: 0.1709 | Best: 0.2245
+  Epoch  20/150 | Loss: 0.4352 | Val Acc: 0.3980 | Val F1: 0.3466 | Best: 0.3980
+  Epoch  30/150 | Loss: 0.3602 | Val Acc: 0.5918 | Val F1: 0.4995 | Best: 0.6378
+  Epoch  40/150 | Loss: 0.2911 | Val Acc: 0.6378 | Val F1: 0.4892 | Best: 0.6888
+  Epoch  50/150 | Loss: 0.2602 | Val Acc: 0.6531 | Val F1: 0.4524 | Best: 0.6888
+  Early stopping на epoch 59 (no improvement for 20 epochs)
+
+  Fold 4 Best -> Accuracy: 0.6888 | Macro F1: 0.4559
+==================================================
+FOLD 5/5
+==================================================
+  Train: 785 → 2000 пациента след SMOTE
+  Epoch  10/150 | Loss: 0.5333 | Val Acc: 0.1582 | Val F1: 0.2047 | Best: 0.2092
+  Epoch  20/150 | Loss: 0.3872 | Val Acc: 0.2857 | Val F1: 0.3050 | Best: 0.3367
+  Epoch  30/150 | Loss: 0.3480 | Val Acc: 0.4388 | Val F1: 0.4249 | Best: 0.5153
+  Epoch  40/150 | Loss: 0.3014 | Val Acc: 0.6020 | Val F1: 0.4893 | Best: 0.6173
+  Epoch  50/150 | Loss: 0.2748 | Val Acc: 0.5816 | Val F1: 0.5106 | Best: 0.6480
+  Epoch  60/150 | Loss: 0.2292 | Val Acc: 0.6633 | Val F1: 0.5014 | Best: 0.6633
+  Epoch  70/150 | Loss: 0.2108 | Val Acc: 0.6224 | Val F1: 0.4500 | Best: 0.6633
+  Epoch  80/150 | Loss: 0.1734 | Val Acc: 0.6327 | Val F1: 0.4904 | Best: 0.6888
+  Epoch  90/150 | Loss: 0.1340 | Val Acc: 0.6837 | Val F1: 0.5181 | Best: 0.6939
+  Epoch 100/150 | Loss: 0.1637 | Val Acc: 0.6378 | Val F1: 0.5388 | Best: 0.6939
+  Epoch 110/150 | Loss: 0.1305 | Val Acc: 0.7041 | Val F1: 0.5367 | Best: 0.7143
+  Epoch 120/150 | Loss: 0.1240 | Val Acc: 0.6888 | Val F1: 0.5580 | Best: 0.7143
+  Early stopping на epoch 129 (no improvement for 20 epochs)
+
+  Fold 5 Best -> Accuracy: 0.7143 | Macro F1: 0.5774
+  --> Нов глобален най-добър модел (acc=0.7143)
+
+==================================================
+ФИНАЛНИ РЕЗУЛТАТИ — TCGA ONLY v2 (160 гена, GATv2 + SMOTE + edge features)
+==================================================
+Accuracy:  0.6861  (+/- 0.0201)
+Macro F1:  0.5429  (+/- 0.0611)
+
+СРАВНЕНИЕ:
+  27 гена оригинал:               Acc=0.5658  F1=0.4591
+  160 гена TCGA only v1 (GATConv):  Acc=0.5851  F1=0.4353
+  160 гена TCGA only v2 (GATv2):   Acc=0.6136  F1=0.4544
+  196 гена (160 + 36 PAM50) GATv2: Acc=0.6861  F1=0.5429
+
+Per-class report:
+              precision    recall  f1-score   support
+
+  BRCA_Basal       0.81      0.89      0.85       171
+   BRCA_Her2       0.91      0.26      0.40        78
+   BRCA_LumA       0.78      0.84      0.81       499
+   BRCA_LumB       0.57      0.61      0.59       197
+ BRCA_Normal       0.75      0.50      0.60        36
+
+    accuracy                           0.74       981
+   macro avg       0.76      0.62      0.65       981
+weighted avg       0.75      0.74      0.73       981
+
+Моделът е запазен като: best_model_tcga_160genes.pt

@@ -18,7 +18,7 @@ PAM50 = {
 print(f"PAM50 official count: {len(PAM50)}")
 
 # Our gene set
-expr_df = pd.read_csv('data/tcga_expression_174genes.csv', index_col=0)
+expr_df = pd.read_csv('data/tcga_expression_160genes.csv', index_col=0)
 our_genes = set(expr_df.index)
 print(f"Our gene count: {len(our_genes)}")
 print()
