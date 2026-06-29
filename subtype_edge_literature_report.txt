@@ -1,0 +1,89 @@
+================================================================================
+ЕТАП 3 — ЛИТЕРАТУРЕН ФИЛТЪР (PubMed) НА СУБТИП-РАЗГРАНИЧАВАЩИТЕ РЕБРА
+================================================================================
+Shortlist (corr_range>0.5): 206 ребра
+  ЦЕЛ 1 (НОВО, breast=0):        45
+  ЦЕЛ 2 (ПОТВЪРДЕНО, breast>=3): 88
+  Сива зона (1-2):              73
+
+────────────────────────────────────────────────────────────────────────────────
+ЦЕЛ 1 — НОВИ КАНДИДАТИ (двойка не е изследвана заедно в рак на гърдата)
+────────────────────────────────────────────────────────────────────────────────
+Gene1    Gene2    субтип        corrRng coCite breast
+IGF1R    MAP2K1   Her2             0.89     18      0
+ANLN     CDC6     Basal            0.84      4      0
+TYMS     CDC6     Basal            0.76      4      0
+FKBP4    HSP90AA1 Her2             0.76      7      0
+ABL1     CCND3    Her2             0.74      1      0
+PTTG1    CDC6     Basal            0.71      3      0
+ERBB3    HGF      Her2             0.71     15      0
+NDC80    CDC6     LumA             0.70      0      0
+ESR1     MAP2K1   Her2             0.67     11      0
+KIF2C    CDC6     LumA             0.65      7      0
+ANLN     UBE2C    Normal           0.64      2      0
+UBE2T    CDC6     LumA             0.63      0      0
+BCL2L11  CCNE1    Her2             0.62      0      0
+PIK3R2   PLCG2    LumA             0.60      0      0
+IRS1     KIT      LumA             0.59     43      0
+ANLN     NDC80    Normal           0.59      2      0
+PIK3R1   SMAD4    Her2             0.59     14      0
+ANXA5    CCND1    Her2             0.59      3      0
+MET      PLCG2    Her2             0.58      5      0
+EXO1     CDC20    Basal            0.58      3      0
+CDKN3    CTNNB1   Normal           0.58      2      0
+BCL2L11  CCNA2    LumA             0.57      0      0
+CDC6     CEP55    Basal            0.57      3      0
+KIT      KRT5     Her2             0.57      5      0
+CCNE2    CDKN2A   Normal           0.57      8      0
+ESR1     ETS1     Her2             0.56      6      0
+PDGFRB   SNAI2    Her2             0.55      4      0
+AREG     CDH1     Basal            0.55      3      0
+BCL2L11  E2F1     Her2             0.55      4      0
+CCNA2    CTNNB1   Normal           0.55      7      0
+IGF1     MAPK8    Her2             0.54     19      0
+ANLN     MELK     Basal            0.53      4      0
+EXO1     NDC80    Normal           0.53      2      0
+YAP1     CDC20    Normal           0.53      2      0
+HGF      KRAS     Her2             0.53     62      0
+ANXA5    CDK4     Normal           0.52      1      0
+PIK3R2   RET      Basal            0.52      0      0
+MYBL2    CENPF    Normal           0.51      6      0
+GAB1     JAK2     Her2             0.51      7      0
+YAP1     UBE2C    Normal           0.51      1      0
+CDC6     CDC20    Basal            0.51     24      0
+TYMS     UBE2C    Normal           0.51     10      0
+ANXA5    CCNE1    Her2             0.50      0      0
+CCNE1    CDKN3    Her2             0.50      1      0
+AREG     CDKN3    Basal            0.50      1      0
+
+────────────────────────────────────────────────────────────────────────────────
+ЦЕЛ 2 — ПОТВЪРДЕНИ ОТ ЛИТЕРАТУРАТА (топ 25 по ефект)
+────────────────────────────────────────────────────────────────────────────────
+Gene1    Gene2    субтип        corrRng breast
+EGF      KIT      LumA             0.86     21
+EGFR     KIT      LumA             0.84    126
+EPCAM    KRT19    LumA             0.82      9
+EGFR     IGF1     LumA             0.81     50
+ERBB2    IGF1R    Basal            0.81     35
+EGFR     HGF      LumA             0.79     30
+CCND2    CDK6     LumA             0.78      8
+EIF4EBP1 FGFR1    Her2             0.77      4
+BIRC5    CDC6     Basal            0.77      4
+FGFR1    FGFR2    Her2             0.76     81
+FOXO1    FOXO3    Her2             0.75     11
+ESR1     IGF1R    Her2             0.75     22
+BRCA2    CDK2     LumA             0.75      5
+SNAI1    SNAI2    Her2             0.74     35
+FBXW7    FOXM1    Her2             0.70      3
+JAK2     KRAS     Her2             0.69     11
+IGF2     KIT      LumA             0.68      3
+CCND1    CDK6     Her2             0.66     34
+EGF      GRB7     Her2             0.66      3
+EGFR     FOXO1    LumA             0.66      4
+ESR1     HIF1A    Her2             0.65     12
+FBXW7    KIT      LumA             0.65      4
+EGFR     KRT5     Her2             0.64      4
+ESR1     GREB1    Her2             0.64     15
+AKT3     CDH1     Her2             0.64      3
+
+СЛЕДВАЩА СТЪПКА (Етап 4): Enrichr/STRING/expression анализ на ЦЕЛ 1 кандидатите.

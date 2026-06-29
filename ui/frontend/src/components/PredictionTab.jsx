@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import axios from 'axios'
 import NetworkGraph from './NetworkGraph'
+import NetworkGraph3D from './NetworkGraph3D'
 
 const SUBTYPE_COLORS = {
   BRCA_LumA:   { bg: 'bg-blue-500',   text: 'text-blue-400',   bar: '#3b82f6' },
@@ -19,11 +20,53 @@ const SUBTYPE_INFO = {
   BRCA_Normal: 'Нормал-подобен — наподобява нормална тъкан, добра прогноза',
 }
 
+function GeneCoverage({ provided, total, coveragePct, missingCritical }) {
+  const barColor =
+    coveragePct >= 80 ? '#22c55e' :   // green
+    coveragePct >= 50 ? '#eab308' :   // yellow
+                        '#ef4444'     // red
+
+  return (
+    <div className="glass rounded-2xl p-5">
+      <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Генно покритие</p>
+
+      {/* Coverage bar */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${coveragePct}%`, background: barColor }}
+          />
+        </div>
+        <span className="text-white font-semibold text-sm whitespace-nowrap">
+          {provided}/{total}
+        </span>
+      </div>
+      <p className="text-xs text-slate-400 mb-3">
+        {provided} от {total} гена разпознати ({coveragePct}%)
+      </p>
+
+      {/* Warning for missing critical genes */}
+      {missingCritical.length > 0 && (
+        <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3">
+          <p className="text-xs text-amber-400 font-medium mb-1">
+            ⚠️ Липсват {missingCritical.length} критични гена:
+          </p>
+          <p className="text-xs text-amber-300/80 leading-relaxed">
+            {missingCritical.join(', ')}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function PredictionTab({ onPatientAnalyzed }) {
   const [loading,  setLoading]  = useState(false)
   const [results,  setResults]  = useState(null)
   const [selected, setSelected] = useState(0)
   const [error,    setError]    = useState(null)
+  const [viewMode, setViewMode] = useState('3d')   // '3d' (default) | '2d'
 
   useEffect(() => {
     const cur = results?.[selected]
@@ -65,22 +108,26 @@ export default function PredictionTab({ onPatientAnalyzed }) {
   const current = results?.[selected]
 
   return (
-    <div className="space-y-6">
-      {/* Upload zone */}
+    <div className="flex flex-col gap-6 h-full min-h-0">
+      {/* Upload zone — compact once results are loaded to give the graph more room */}
       <div
         {...getRootProps()}
-        className={`glass rounded-2xl p-10 text-center cursor-pointer transition-all duration-300 border-2 border-dashed ${
+        className={`glass rounded-2xl text-center cursor-pointer transition-all duration-300 border-2 border-dashed ${
+          results ? 'p-4' : 'p-10'
+        } ${
           isDragActive ? 'border-clinical-500 bg-clinical-500/10 glow' : 'border-white/20 hover:border-clinical-500/50'
         }`}
       >
         <input {...getInputProps()} />
-        <div className="text-4xl mb-3">📂</div>
-        <p className="text-white font-medium text-lg">
+        <div className={results ? 'text-2xl mb-1' : 'text-4xl mb-3'}>📂</div>
+        <p className={`text-white font-medium ${results ? 'text-sm' : 'text-lg'}`}>
           {isDragActive ? 'Пусни файла тук...' : 'Качи CSV файл с генна експресия'}
         </p>
-        <p className="text-slate-400 text-sm mt-1">
-          Формат: редове = гени, колони = пациенти (z-score стойности)
-        </p>
+        {!results && (
+          <p className="text-slate-400 text-sm mt-1">
+            Формат: редове = гени, колони = пациенти (z-score стойности)
+          </p>
+        )}
       </div>
 
       {/* Loading */}
@@ -100,9 +147,9 @@ export default function PredictionTab({ onPatientAnalyzed }) {
 
       {/* Results */}
       {results && (
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-12 gap-6 flex-1 min-h-0" style={{ gridTemplateRows: 'minmax(0, 1fr)' }}>
           {/* Left: patient list + prediction */}
-          <div className="col-span-4 space-y-4">
+          <div className="col-span-4 space-y-4 overflow-y-auto min-h-0 pr-1">
             {/* Patient selector */}
             {results.length > 1 && (
               <div className="glass rounded-xl p-4">
@@ -146,6 +193,16 @@ export default function PredictionTab({ onPatientAnalyzed }) {
               </p>
             </div>
 
+            {/* Gene coverage */}
+            {current.genes_total && (
+              <GeneCoverage
+                provided={current.genes_provided}
+                total={current.genes_total}
+                coveragePct={current.coverage_pct}
+                missingCritical={current.missing_critical_genes ?? []}
+              />
+            )}
+
             {/* Probability bars */}
             <div className="glass rounded-2xl p-5">
               <p className="text-xs text-slate-400 uppercase tracking-wider mb-4">Вероятности по подтип</p>
@@ -171,17 +228,42 @@ export default function PredictionTab({ onPatientAnalyzed }) {
           </div>
 
           {/* Right: network graph */}
-          <div className="col-span-8 glass rounded-2xl overflow-hidden" style={{ height: '560px' }}>
-            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+          <div className="col-span-8 glass rounded-2xl overflow-hidden flex flex-col min-h-0">
+            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between shrink-0">
               <div>
                 <p className="text-sm font-medium text-white">Генна мрежа — Attention Weights</p>
                 <p className="text-xs text-slate-400">Размерът и цветът на ребрата показват важността за диагнозата</p>
               </div>
-              <span className="text-xs glass px-3 py-1 rounded-full text-slate-400">
-                {current.top_edges.length} връзки
-              </span>
+              <div className="flex items-center gap-3">
+                {/* 2D / 3D toggle */}
+                <div className="flex glass rounded-full p-0.5 text-xs">
+                  <button
+                    onClick={() => setViewMode('3d')}
+                    className={`px-3 py-1 rounded-full transition-all ${
+                      viewMode === '3d' ? 'bg-clinical-500 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    3D
+                  </button>
+                  <button
+                    onClick={() => setViewMode('2d')}
+                    className={`px-3 py-1 rounded-full transition-all ${
+                      viewMode === '2d' ? 'bg-clinical-500 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    2D
+                  </button>
+                </div>
+                <span className="text-xs glass px-3 py-1 rounded-full text-slate-400">
+                  {current.top_edges.length} връзки
+                </span>
+              </div>
             </div>
-            <NetworkGraph edges={current.top_edges} prediction={current.prediction} />
+            <div className="flex-1 min-h-0">
+              {viewMode === '3d'
+                ? <NetworkGraph3D edges={current.top_edges} prediction={current.prediction} />
+                : <NetworkGraph   edges={current.top_edges} prediction={current.prediction} />}
+            </div>
           </div>
         </div>
       )}

@@ -44,6 +44,15 @@ EXPR_PATH  = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'tcga_e
 CLASSES = ['BRCA_Basal', 'BRCA_Her2', 'BRCA_LumA', 'BRCA_LumB', 'BRCA_Normal']
 DEVICE  = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+CRITICAL_GENES = [
+    'ERBB2', 'ERBB3', 'FGFR1', 'FGFR2', 'FGFR4',
+    'FOXA1', 'FOXC1', 'ESR1',  'MAPK1', 'STAT3',
+    'KDR',   'HGF',   'IGF1R', 'TSC2',  'STK11',
+    'TP53',  'PIK3CA','PTEN',  'BRCA1', 'BRCA2',
+    'EGFR',  'MYC',   'CCND1', 'CDH1',  'GATA3',
+    'AR',    'PGR',   'KIT',   'VEGFA', 'MKI67',
+]
+
 model             = None
 gene_list         = None
 gene_map          = None
@@ -52,10 +61,13 @@ edge_attr         = None
 ppi_df            = None
 tcga_expr         = None
 brain_global_cache = None
+ppi_score_lookup  = None
+ppi_degree        = None
 
 
 def load_resources():
     global model, gene_list, gene_map, edge_index, edge_attr, ppi_df, tcga_expr
+    global ppi_score_lookup, ppi_degree
 
     ppi_df    = pd.read_csv(PPI_PATH, sep='\t')
     tcga_expr = pd.read_csv(EXPR_PATH, index_col=0)
@@ -74,6 +86,19 @@ def load_resources():
 
     edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous().to(DEVICE)
     edge_attr  = torch.tensor(edge_scores, dtype=torch.float).to(DEVICE)
+
+    # STRING score lookup (both directions) for tooltip enrichment
+    ppi_score_lookup = {}
+    for _, row in ppi_df.iterrows():
+        g1, g2 = str(row['node1']), str(row['node2'])
+        sc = float(row['combined_score']) if has_score else 1.0
+        ppi_score_lookup[(g1, g2)] = sc
+        ppi_score_lookup[(g2, g1)] = sc
+
+    # Per-gene PPI degree (number of STRING neighbours)
+    ppi_degree = {}
+    for g in gene_list:
+        ppi_degree[g] = int(((ppi_df['node1'] == g) | (ppi_df['node2'] == g)).sum())
 
     model = BioGNN(1, 128, len(CLASSES), edge_dim=1).to(DEVICE)
     state = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=True)
@@ -138,13 +163,19 @@ def top_attention_edges(attn_weights, top_n=50):
     for idx in np.argsort(scores)[::-1]:
         s, d, sc = int(src[idx]), int(dst[idx]), float(scores[idx])
         pair = tuple(sorted([s, d]))
-        if pair in seen:
+        if pair in seen or s == d:          # skip duplicates and self-loops
             continue
         seen.add(pair)
+        g_src  = gene_list[s]
+        g_dst  = gene_list[d]
+        str_sc = ppi_score_lookup.get((g_src, g_dst))  # None if not in STRING
         results.append({
-            "source": gene_list[s],
-            "target": gene_list[d],
-            "weight": round(sc, 6)
+            "source":       g_src,
+            "target":       g_dst,
+            "weight":       round(sc, 6),
+            "string_score": round(str_sc, 3) if str_sc is not None else None,
+            "src_degree":   ppi_degree.get(g_src, 0),
+            "dst_degree":   ppi_degree.get(g_dst, 0),
         })
         if len(results) >= top_n:
             break
@@ -178,13 +209,25 @@ async def predict(file: UploadFile = File(...)):
         top_edges   = top_attention_edges(attn)
         brain_layers = extract_layer_brain_data(attn)
 
+        # Gene coverage analysis
+        provided_genes   = set(df.index) & set(gene_list)
+        genes_provided   = len(provided_genes)
+        coverage_pct     = round(genes_provided / len(gene_list) * 100, 1)
+        # Only flag critical genes the model actually uses but the user did not provide
+        missing_critical = [g for g in CRITICAL_GENES
+                            if g in gene_map and g not in provided_genes]
+
         results.append({
-            "patient_id":    patient_id,
-            "prediction":    CLASSES[pred_idx],
-            "confidence":    round(float(probs[pred_idx]) * 100, 1),
-            "probabilities": {c: round(float(p) * 100, 1) for c, p in zip(CLASSES, probs)},
-            "top_edges":     top_edges,
-            "brain_layers":  brain_layers,
+            "patient_id":             patient_id,
+            "prediction":             CLASSES[pred_idx],
+            "confidence":             round(float(probs[pred_idx]) * 100, 1),
+            "probabilities":          {c: round(float(p) * 100, 1) for c, p in zip(CLASSES, probs)},
+            "top_edges":              top_edges,
+            "brain_layers":           brain_layers,
+            "genes_provided":         genes_provided,
+            "genes_total":            len(gene_list),
+            "coverage_pct":           coverage_pct,
+            "missing_critical_genes": missing_critical,
         })
 
     return JSONResponse(results)
